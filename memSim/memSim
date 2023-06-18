@@ -1,0 +1,2 @@
+#!/bin/bash
+javac memSim.java && java memSim "$1" "$2" "$3"

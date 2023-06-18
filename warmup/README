@@ -1,0 +1,45 @@
+Name: Phú Lâm
+Name: Hank Tsai 
+
+Answer:  
+Part 0 - Repeating Fork
+The line wait(NULL) will wait for the child to finish
+0Yo!1Yo!Yo!2Yo!Yo!Yo!3Yo!Yo!Yo!Yo!4Yo!Yo!Yo!Yo!Yo!5Yo!Yo!Yo!Yo!Yo!5
+Each loop iteration, a new process is created by the fork() system call. 
+The parent waits for the child to execute/ Wait(NULL). 
+The child gets parent's buffered output because it is not flushed. 
+The fork() of a child returns 0, and while loop exits. 
+
+Now after runnning gdb and seeing the processes
+The only confusion I had after seeing gdb run was 5 Yo! was printed twice. 
+My understanding when program terminates (i.e. main() returns) the output 
+buffer of both parent and child are flushed which caused it to be printed twice. 
+
+Part 1
+Initially, using write without sleep times gave me a consistent output of 1000 parentchild. Parent runs first in this particular case.
+
+Using printf() in parent and child
+Since the child inherits the buffered output from parent. The "parent" output quickly got piled up. It was hard for me to draw a conclusion of either parent or child runs first.
+
+Using printf() followed by fflush(stdout)
+The result was consistent showing 1000 parentchild, which means parent runs first.
+
+Using write() in parent and child with a 0.1 second sleep time gave me 906 childparent and 94 parentchild. Since a delay was added to write to the standard output, it can affect operting system's scheduling behavior, reuslted in an inconsistent output indicating that the child runs first for the majority of times.
+
+However, if changing the sleep time to 1 second. child always runs before the parent.
+ 
+Conclusion: It is non-deterministic which process gets run first and this depends on the specific implementation of process scheduling algorithms in the operating system
+
+Part 2 
+After running pmap $! 
+I saw the memory mappings for the process 21728 which runs the executable who_runs_first.
+At the beginning of each line is the base address of each mapping, followed by the size of the mapping. 
+It shows the corresponding permission of each mapping, r is read, w is write and x is execute. 
+who_runs_first has three mappings with different permissions granted. 
+There are libraries that are loaded into memories as well.
+Also the stack rigion [ stack ] and [ anon ] anonymous memory regions.
+And lastly, it shows the total size of the memory mapping for this process.
+
+
+
+

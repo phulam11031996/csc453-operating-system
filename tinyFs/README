@@ -1,0 +1,23 @@
+Names: Phu Lam
+
+Deliverables:
+	* libDisk.py: A disk emulator for the filesystem.
+	* other.py: constants, helper functions, error codes
+	* libTinyFS.py: The interface of the TinyFS file system.
+	* tinyFsDemo.py: Demo file 
+	* videoDemo.mov: video demo
+
+An explanation of how well your TinyFS implementation works
+	Work pretty well; All the requirements are implemented.
+	|super block|--------- iNode table ------------|--------------- data blocks ---------------------|
+	superblock cantains bitmap
+	iNode table contain meta data
+
+An explanation of which additional functionality areas you have chosen and how you have shown that it works.
+	Addditional functionality implemented:
+		Fragmentation info and defragmentation .
+		Directory listing and renaming.
+	Yes, I showed that it work in the video.
+	
+Any limitations or bugs your file system has.
+	I found some bugs and already fixed all of them.

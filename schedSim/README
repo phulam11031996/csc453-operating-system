@@ -1,0 +1,21 @@
+Phu Lam
+
+Run the command:
+    chmod +x ./schedSim
+To Run:
+    ./schedSim <job-file.txt> -p <ALGORITHM> -q <QUANTUM>
+
+
+Questions
+For what types of workloads does SRTN deliver the same turnaround times as FIFO?
+    When all jobs have the same burst time.
+    Jobs arrive in the order of increasing burst time.
+For what types of workloads and quantum lengths does SRTN deliver the same response times as RR?
+    When all jobs have the same burst time and the quantum time is greater or equal to the burst time
+    Jobs arrive in the order of increasing burst time. and the quantum is greater or equal to the second to last longest burst time
+What happens to response time with SRTN as job lengths increase? Can you use the simulator to demonstrate the trend?
+    The response time with decrease. Because it's non-preemptive and the job lengths get longer.
+    Yes, we can. In an SRTN scheduler, response time is inversely proportional. Therefore, if we increase the job length of the processes, we will see an increase in wait time; that means the response time decreases.
+What happens to response time with RR as quantum lengths increase? Can you write an equation that gives the worst-case response time, given N jobs?
+    The response time will decrease as the quantum lengths increase.
+    R = (N - 1) * q

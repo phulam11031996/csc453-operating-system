@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+from collections import deque
+from queue import Queue
+
+import sys
+argv = sys.argv
+
+
+def parse_command_line_arguments(): 
+    job_file = argv[1]
+    algorithm = "FIFO"
+    quantum = 1
+
+    if len(argv) == 4 and argv[2] == "-p" and argv[3]:
+        algorithm = argv[3]
+    if len(argv) == 4 and argv[2] == "-q":
+        quantum = argv[3]
+    if len(argv) == 6 and argv[2] == "-p" and argv[4] == "-q":
+        algorithm = argv[3]
+        quantum = argv[5]
+    if len(argv) == 6 and argv[2] == "-q" and argv[4] == "-p":
+        algorithm = argv[5]
+        quantum = argv[3]
+
+    if algorithm in ["FIFO", "SRTN", "RR"]:
+        try:
+            quantum = int(quantum)
+            return job_file, algorithm, quantum
+        except ValueError:
+            print("Invalid command arguments")
+    else:
+        raise ValueError("Invalid command arguments")
+
+
+def read_list_of_jobs(file_name): 
+    with open(file_name, 'r') as f:
+        lines = f.read().split('\n')
+    arrival_time = [int(line.split(" ")[0]) for line in lines if line.strip() != ""]
+    burst_time = [int(line.split(" ")[1]) for line in lines if line.strip() != ""]
+    return arrival_time, burst_time
+
+
+def fcfs(arrival_time, burst_time):
+    arrival_order_burst = [[arrival_time[i], i, burst_time[i]]
+                           for i in range(len(arrival_time))]
+    arrival_order_burst.sort()
+    turnaround = []
+    wait = []
+    current_completion_time = 0
+    for arrival_time, order, burst_time in arrival_order_burst:
+        current_completion_time += burst_time
+        turnaround.append(current_completion_time - arrival_time)
+        wait.append(current_completion_time - arrival_time - burst_time)
+    return turnaround, wait
+
+
+def srtn(arrival_time, burst_time):
+    arrival_burst = list(zip(arrival_time, burst_time))
+    time = 0
+    num_completed = 0
+    turnaround = []
+    wait = []
+
+    while num_completed < len(arrival_burst):
+        eligible_jobs = [[i, arrival, run] for i, [arrival, run]
+                         in enumerate(arrival_burst) if arrival <= time and run > 0]
+
+        if not eligible_jobs:
+            time += 1
+            continue
+
+        job_id, arrival, run = min(eligible_jobs, key=lambda x: x[2])
+
+        arrival_burst[job_id] = (arrival, run - 1)
+        time += 1
+
+        if arrival_burst[job_id][1] == 0:
+            completion_time = time
+            turnaround.append(completion_time - arrival)
+            wait.append(completion_time - arrival - burst_time[job_id])
+            num_completed += 1
+
+    return turnaround, wait
+
+
+def rr(arrival_times, burst_times, quantum): 
+    arrival_order_burst = [[arrival_times[i], i, burst_times[i]]
+                           for i in range(len(arrival_times))]
+    arrival_order_burst.sort()
+
+    num_jobs = len(arrival_order_burst)
+    job_queue = deque()
+    completed_jobs = 0
+    current_time = arrival_order_burst[0][0]
+    selected_job = 0
+    time_limit = quantum
+    remaining_burst_times = burst_times[:]
+
+    turnaround = [0 for _ in range(num_jobs)]
+    wait = [0 for _ in range(num_jobs)]
+
+    while completed_jobs < num_jobs:
+        for i in range(num_jobs):
+            arrival_time = arrival_order_burst[i][0]
+            if arrival_time == current_time and i != selected_job:
+                job_queue.append(i)
+
+        if time_limit == 0:
+            if not job_queue:
+                if remaining_burst_times[selected_job] == 0:
+                    current_time += 1
+                    continue
+                else:
+                    time_limit = quantum
+            else:
+                time_limit = quantum
+                if remaining_burst_times[selected_job] > 0:
+                    job_queue.append(selected_job)
+                selected_job = job_queue.popleft()
+
+        remaining_burst_times[selected_job] -= 1
+        time_limit -= 1
+
+        if remaining_burst_times[selected_job] == 0:
+            turnaround[selected_job] = current_time + \
+                1 - arrival_order_burst[selected_job][0]
+            wait[selected_job] = current_time + 1 - \
+                arrival_order_burst[selected_job][0] - \
+                arrival_order_burst[selected_job][2]
+
+            time_limit = 0
+            completed_jobs += 1
+
+        current_time += 1
+
+    return turnaround, wait
+
+
+def print_info(turnaround, wait):
+    for i in range(len(turnaround)):
+        print("Job %3d -- Turnaround %3.2f  Wait %3.2f" %
+              (i, turnaround[i], wait[i]))
+    print("Average -- Turnaround %3.2f  Wait %3.2f" %
+          (sum(turnaround) / len(turnaround), sum(wait) / len(wait)))
+
+
+if __name__ == "__main__":
+    job_file, algorithm, quantum = parse_command_line_arguments()
+    arrival_time, burst_time = read_list_of_jobs(job_file)
+
+    if algorithm == "FIFO":
+        turn, wait = fcfs(arrival_time, burst_time)
+    if algorithm == "SRTN":
+        turn, wait = srtn(arrival_time, burst_time)
+    if algorithm == "RR":
+        turn, wait = rr(arrival_time, burst_time, quantum)
+
+    print_info(turn, wait)

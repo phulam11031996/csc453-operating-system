@@ -1,0 +1,14 @@
+Phu Lam
+How is this LWP library different from a real thread management library?
+Can you name two ways in which the LWP library API could be improved?
+
+Our LWP library is very simple. It only has stacks which keep track of states in
+different LWPs. There is no synchronization, meaning there isn't a way to
+communicate between LWPs. If two or more LWPs write to the same chunk of data,
+it can cause errors. We could create functions that allow LWPs to communicate
+while avoiding race conditions and deadlocks.
+
+Additionally, the scheduler is very simple. We could implement a more
+sophisticated scheduler for the library, either in a pre-emptive or cooperative
+manner. Lastly, each LWP doesn't have its own local storage. We could implement
+a mechanism for LWPs to have their own private data that is not shared with other LWPs
